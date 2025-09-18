@@ -1,0 +1,58 @@
+---
+title: "MICE Imputation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+data <- read.csv("COVIDdataset.csv", row.names = 1) #read csv
+#make the columns the right types for imputation
+data <- data %>% mutate(
+  GENDER = as.factor(GENDER),
+  Lymphocytes = as.numeric(Lymphocytes),
+  SWAB = as.factor(SWAB),
+  AST = as.numeric(AST),
+  ALT = as.numeric(ALT),
+  ALP = as.numeric(ALP),
+  GGT = as.numeric(GGT),
+  LDH = as.numeric(LDH)
+)
+#check NA values
+sapply(data, function(x) sum(is.na(x)))
+
+#check proportion of missing values
+pMiss <- function(x){sum(is.na(x))/length(x)*100}
+apply(data,2,pMiss)#variables (2 is column)
+apply(data,1,pMiss)#samples
+
+
+
+#imputation
+library(mice)
+temp_data = mice(data,m=5,maxit=50,meth="pmm",seed=500)
+
+completeData1 <- complete(temp_data,1)
+
+densityplot(temp_data)
+
+
+```
+
+
+```{r}
+#install.packages("dprep")
+#min_max_norm <- function(x) {
+#    (x - min(x)) / (max(x) - min(x))
+#  }
+#normalized <- lapply(completeData1[3:15],min_max_norm)
+##head(completeData1)
+#dim(completeData1)
+#write.csv(normalized,"normalized_data.csv")
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
